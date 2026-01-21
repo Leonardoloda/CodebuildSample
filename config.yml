@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Sample to test codebuild
+
+Parameters:
+  stage:
+    Type: String
+    Default: dev
+    Description: The name of the deployment stage (e.g., dev, test, prod)
+  email:
+    Type: String
+    Description: Email to send
+
+Resources:
+  NotificationFailuresTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Failed Notifications 
+      TopicName: !Sub 'api-failures-sns-${stage}'
+      Subscription:
+        - Endpoint: !Ref email
+          Protocol: EMAIL
+  NotificationFailuresPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: !Sub 'api-failures-policy-${stage}'
+        Version: '2012-10-17'
+        Statement:
+          Sid: !Sub 'notification-failures-allow-${stage}'
+          Effect: Allow
+          Principal: "*"
+          Action:
+            - sns:Publish
+          Resource: !Ref NotificationFailuresTopic
+      Topics:
+        - !Ref NotificationFailuresTopic
